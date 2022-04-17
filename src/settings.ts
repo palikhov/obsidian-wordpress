@@ -4,7 +4,8 @@ import { PostStatus } from './wp-api';
 
 export const enum ApiType {
   XML_RPC = 'xml-rpc',
-  RestAPI_miniOrange = 'miniOrange'
+  RestAPI_miniOrange = 'miniOrange',
+  Jetpack = 'jetpack'
 }
 
 export interface WordpressPluginSettings {
@@ -38,6 +39,11 @@ export interface WordpressPluginSettings {
    * Default post status.
    */
   defaultPostStatus: PostStatus;
+
+  /**
+   * Authenticated token by OAuth2.
+   */
+  oauth2Token: string | null;
 }
 
 export const DEFAULT_SETTINGS: WordpressPluginSettings = {
@@ -45,7 +51,8 @@ export const DEFAULT_SETTINGS: WordpressPluginSettings = {
   endpoint: '',
   saveUserName: false,
   showRibbonIcon: false,
-  defaultPostStatus: PostStatus.Draft
+  defaultPostStatus: PostStatus.Draft,
+  oauth2Token: null
 }
 
 export class WordpressSettingTab extends PluginSettingTab {
@@ -81,6 +88,7 @@ export class WordpressSettingTab extends PluginSettingTab {
         dropdown
           .addOption(ApiType.XML_RPC, 'XML-RPC')
           .addOption(ApiType.RestAPI_miniOrange, 'REST API Authentication by miniOrange')
+          .addOption(ApiType.Jetpack, 'Jetpack')
           .setValue(this.plugin.settings.apiType)
           .onChange(async (value: ApiType) => {
             this.plugin.settings.apiType = value;
@@ -88,6 +96,33 @@ export class WordpressSettingTab extends PluginSettingTab {
             this.display();
           });
       });
+    if (this.plugin.settings.apiType === ApiType.Jetpack) {
+      if (this.plugin.settings.oauth2Token) {
+        new Setting(containerEl)
+          .setName('Jetpack Logout')
+          .setDesc('You are now login WordPress, click right button to logout.')
+          .addButton((button) => {
+            button.setButtonText('Logout')
+              .setCta()
+              .onClick(() => {
+                this.plugin.settings.oauth2Token = null;
+                this.display();
+              });
+          });
+      } else {
+        new Setting(containerEl)
+          .setName('Jetpack Authentication')
+          .setDesc('Click right button to authenticate WordPress by Jetpack plugin.')
+          .addButton((button) => {
+            button.setButtonText('Authenticate')
+              .setCta()
+              .onClick(() => {
+                const redUri = encodeURIComponent('obsidian://wordpress-plugin');
+                window.open(`https://public-api.wordpress.com/oauth2/authorize?client_id=79085&redirect_uri=${redUri}&response_type=code&scope=posts%20taxonomy%20media`);
+              });
+          });
+      }
+    }
     new Setting(containerEl)
       .setName('Show icon in sidebar')
       .setDesc(`If enabled, a button which opens publish panel will be added to the Obsidian sidebar.
