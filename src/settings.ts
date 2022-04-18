@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import WordpressPlugin from './main';
 import { PostStatus } from './wp-api';
+import { getWordPressClient } from './wp-clients';
 
 export const enum ApiType {
   XML_RPC = 'xml-rpc',
@@ -44,6 +45,10 @@ export interface WordpressPluginSettings {
    * Authenticated token by OAuth2.
    */
   oauth2Token: string | null;
+}
+
+export interface WordPressPluginSharedData {
+  oauth2Code?: string | null;
 }
 
 export const DEFAULT_SETTINGS: WordpressPluginSettings = {

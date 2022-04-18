@@ -78,6 +78,23 @@ export class WpOAuth2Client extends AbstractWordPressClient {
     window.open(`${auth.url}?${params.join('&')}`);
   }
 
+  protected requestToken(): void {
+    //   this.settings.oauth2Code = e.code;
+    //   $curl = curl_init( 'https://public-api.wordpress.com/oauth2/token' );
+    //   curl_setopt( $curl, CURLOPT_POST, true );
+    //   curl_setopt( $curl, CURLOPT_POSTFIELDS, array(
+    //     'client_id' => your_client_id,
+    //     'redirect_uri' => your_redirect_url,
+    //     'client_secret' => your_client_secret_key,
+    //     'code' => $_GET['code'], // The code from the previous request
+    //     'grant_type' => 'authorization_code'
+    // ) );
+    //   curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1);
+    //   $auth = curl_exec( $curl );
+    //   $secret = json_decode($auth);
+    //   $access_key = $secret->access_token;
+  }
+
   // protected httpPost(
   //   path: string,
   //   body: unknown,

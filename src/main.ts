@@ -1,12 +1,20 @@
 import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
-import { DEFAULT_SETTINGS, WordpressPluginSettings, WordpressSettingTab } from './settings';
+import { DEFAULT_SETTINGS, WordpressPluginSettings, WordPressPluginSharedData, WordpressSettingTab } from './settings';
 import { addIcons } from './icons';
 import { WordPressPostParams } from './wp-client';
 import { getWordPressClient } from './wp-clients';
 
 export default class WordpressPlugin extends Plugin {
 
+  /**
+   * Settings that will be persist saved.
+   */
 	settings: WordpressPluginSettings;
+
+  /**
+   * Shared data.
+   */
+  data: WordPressPluginSharedData;
 
 	async onload() {
     console.log('loading obsidian-wordpress plugin');
@@ -45,20 +53,7 @@ export default class WordpressPlugin extends Plugin {
           if (e.error) {
             new Notice(`WordPress authorize failed!\n${e.error}: ${e.error_description.replace(/\+/g,' ')}`);
           } else if (e.code) {
-          //   this.settings.oauth2Code = e.code;
-          //   $curl = curl_init( 'https://public-api.wordpress.com/oauth2/token' );
-          //   curl_setopt( $curl, CURLOPT_POST, true );
-          //   curl_setopt( $curl, CURLOPT_POSTFIELDS, array(
-          //     'client_id' => your_client_id,
-          //     'redirect_uri' => your_redirect_url,
-          //     'client_secret' => your_client_secret_key,
-          //     'code' => $_GET['code'], // The code from the previous request
-          //     'grant_type' => 'authorization_code'
-          // ) );
-          //   curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1);
-          //   $auth = curl_exec( $curl );
-          //   $secret = json_decode($auth);
-          //   $access_key = $secret->access_token;
+            this.data.oauth2Code = e.code;
             new Notice('WordPress authorize successfully.');
             // call display() to show logout button
             settingTab.display();
