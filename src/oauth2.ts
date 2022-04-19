@@ -1,3 +1,8 @@
+import WordpressPlugin from './main';
+import { ApiType } from './settings';
+import { requestUrl } from 'obsidian';
+import formUrlEncoded from 'form-urlencoded';
+
 const appUrl = 'obsidian://wordpress-plugin';
 const encodedAppUrl = encodeURIComponent(appUrl);
 
@@ -14,7 +19,7 @@ interface OAuth2Option {
   requestToken: OAuth2URLData;
 }
 
-export const OAuth2: Record<string, OAuth2Option> = {
+const OAuth2Record: Record<string, OAuth2Option> = {
   JetPack: {
     authorize: {
       url: 'https://public-api.wordpress.com/oauth2/authorize',
@@ -41,10 +46,60 @@ export const OAuth2: Record<string, OAuth2Option> = {
   }
 };
 
-export function doHttpGet(): void {
+export class OAuth2Client {
 
-}
+  constructor(
+    private readonly plugin: WordpressPlugin
+  ) { }
 
-export function doHttpPost(): void {
+  /**
+   * Opens the default browser to authorize by OAuth2 server.
+   */
+  authorize(): void {
+    if (this.plugin.settings.apiType === ApiType.Jetpack) {
+      const auth = OAuth2Record.JetPack.authorize;
+      if (auth.method === 'get') {
+        this.doHttpGet(auth.url, auth.params);
+      }
+    }
+  }
+
+  requestToken(code: string): Promise<object | null> {
+    let oauth2;
+    if (this.plugin.settings.apiType === ApiType.Jetpack) {
+      oauth2 = OAuth2Record.JetPack;
+    }
+    if (oauth2) {
+      const queryParams = {
+        ...oauth2.requestToken.params,
+        code: code
+      };
+      const d = oauth2.requestToken.type === 'json' ? JSON.stringify(queryParams) : formUrlEncoded(queryParams);
+      console.log(d);
+      return requestUrl({
+        url: oauth2.requestToken.url,
+        method: 'POST',
+        headers: {
+          'Content-Type': oauth2.requestToken.type === 'json' ? 'application/json' : 'application/x-www-form-urlencoded',
+          'User-Agent': 'obsidian.md'
+        },
+        body: oauth2.requestToken.type === 'json' ? JSON.stringify(queryParams) : formUrlEncoded(queryParams)
+      });
+    } else {
+      return null;
+    }
+  }
+
+  private doHttpGet(url: string, queryParams: Record<string, string>): void {
+    const params = [];
+    for (const [ key, value ] of Object.entries(queryParams)) {
+      params.push(`${key}=${value}`);
+    }
+    window.open(`${url}?${params.join('&')}`);
+  }
+
+  private doHttpPost(): void {
+
+  }
 
 }

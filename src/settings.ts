@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import WordpressPlugin from './main';
-import { OAuth2 } from './oauth2';
 import { PostStatus } from './wp-api';
+import { OAuth2Client } from './oauth2';
 
 export const enum ApiType {
   XML_RPC = 'xml-rpc',
@@ -118,14 +118,8 @@ export class WordpressSettingTab extends PluginSettingTab {
             button.setButtonText('Authenticate')
               .setCta()
               .onClick(() => {
-                if (this.plugin.settings.apiType === ApiType.Jetpack) {
-                  const auth = OAuth2.JetPack.authorize;
-                  const params = [];
-                  for (const [ key, value ] of Object.entries(auth.params)) {
-                    params.push(`${key}=${value}`);
-                  }
-                  window.open(`${auth.url}?${params.join('&')}`);
-                }
+                const oauth2 = new OAuth2Client(this.plugin);
+                oauth2.authorize();
               });
           });
       }

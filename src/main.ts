@@ -1,9 +1,9 @@
-import { Editor, MarkdownView, Notice, Plugin, request, requestUrl } from 'obsidian';
-import { ApiType, DEFAULT_SETTINGS, WordpressPluginSettings, WordpressSettingTab } from './settings';
+import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
+import { DEFAULT_SETTINGS, WordpressPluginSettings, WordpressSettingTab } from './settings';
 import { addIcons } from './icons';
 import { WordPressPostParams } from './wp-client';
 import { getWordPressClient } from './wp-clients';
-import { OAuth2 } from './oauth2';
+import { OAuth2Client } from './oauth2';
 
 export default class WordpressPlugin extends Plugin {
 
@@ -60,38 +60,27 @@ export default class WordpressPlugin extends Plugin {
             //   $auth = curl_exec( $curl );
             //   $secret = json_decode($auth);
             //   $access_key = $secret->access_token;
-            let oauth;
-            if (this.settings.apiType === ApiType.Jetpack) {
-              oauth = OAuth2.JetPack;
-            }
-            if (oauth) {
-              const s = JSON.stringify({
-                ...oauth.requestToken.params,
-                code: e.code
-              });
-              console.log(s);
-              const resp = await requestUrl({
-                url: oauth.requestToken.url,
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'User-Agent': 'obsidian.md'
-                },
-                body: JSON.stringify({
-                  ...oauth.requestToken.params,
-                  code: e.code
-                })
-              });
-              // const tokenResponse = JSON.parse(resp);
-              // console.log(tokenResponse);
-              // if (tokenResponse.error) {
-              //   new Notice(`WordPress authorize failed.\nError: ${tokenResponse.error}\n${tokenResponse.error_description}`);
-              // }
-              console.log(resp);
+            const oauth2 = new OAuth2Client(this);
+            const resp = await oauth2.requestToken(e.code);
+            console.log(resp);
 
-              // call display() to show logout button
-              settingTab.display();
-            }
+            // if (oauth) {
+            //   const s = JSON.stringify({
+            //     ...oauth.requestToken.params,
+            //     code: e.code
+            //   });
+            //   console.log(s);
+            //
+            //   // const tokenResponse = JSON.parse(resp);
+            //   // console.log(tokenResponse);
+            //   // if (tokenResponse.error) {
+            //   //   new Notice(`WordPress authorize failed.\nError: ${tokenResponse.error}\n${tokenResponse.error_description}`);
+            //   // }
+            //   console.log(resp);
+            //
+            //   // call display() to show logout button
+            //   settingTab.display();
+            // }
           }
         }
       }
