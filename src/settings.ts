@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import WordpressPlugin from './main';
+import { OAuth2 } from './oauth2';
 import { PostStatus } from './wp-api';
-import { getWordPressClient } from './wp-clients';
 
 export const enum ApiType {
   XML_RPC = 'xml-rpc',
@@ -45,10 +45,6 @@ export interface WordpressPluginSettings {
    * Authenticated token by OAuth2.
    */
   oauth2Token: string | null;
-}
-
-export interface WordPressPluginSharedData {
-  oauth2Code?: string | null;
 }
 
 export const DEFAULT_SETTINGS: WordpressPluginSettings = {
@@ -122,8 +118,14 @@ export class WordpressSettingTab extends PluginSettingTab {
             button.setButtonText('Authenticate')
               .setCta()
               .onClick(() => {
-                const redUri = encodeURIComponent('obsidian://wordpress-plugin');
-                window.open(`https://public-api.wordpress.com/oauth2/authorize?client_id=79085&redirect_uri=${redUri}&response_type=code&scope=posts%20taxonomy%20media`);
+                if (this.plugin.settings.apiType === ApiType.Jetpack) {
+                  const auth = OAuth2.JetPack.authorize;
+                  const params = [];
+                  for (const [ key, value ] of Object.entries(auth.params)) {
+                    params.push(`${key}=${value}`);
+                  }
+                  window.open(`${auth.url}?${params.join('&')}`);
+                }
               });
           });
       }
