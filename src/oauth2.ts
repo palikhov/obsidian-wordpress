@@ -2,9 +2,12 @@ import WordpressPlugin from './main';
 import { ApiType } from './settings';
 import { requestUrl } from 'obsidian';
 import formUrlEncoded from 'form-urlencoded';
+import { startsWith } from 'lodash-es';
+import { openWithBrowser } from './utils';
 
-const appUrl = 'obsidian://wordpress-plugin';
-const encodedAppUrl = encodeURIComponent(appUrl);
+export const appOAuthUrlAction = 'wordpress-plugin-oauth';
+const appOAuthUrl = `obsidian://${appOAuthUrlAction}`;
+const encodedAppOAuthUrl = encodeURIComponent(appOAuthUrl);
 
 
 interface OAuth2URLData {
@@ -25,10 +28,11 @@ const OAuth2Record: Record<string, OAuth2Option> = {
       url: 'https://public-api.wordpress.com/oauth2/authorize',
       method: 'get',
       params: {
-        client_id: '79085',
-        redirect_uri: encodedAppUrl,
+        client_id: '79085', // '79175', '79085',
+        redirect_uri: encodedAppOAuthUrl,
         response_type: 'code',
-        scope: 'posts%20taxonomy%20media'
+        scope: 'posts%20taxonomy%20media',
+        blog: ''
       }
     },
     requestToken: {
@@ -36,8 +40,9 @@ const OAuth2Record: Record<string, OAuth2Option> = {
       method: 'post',
       type: 'form',
       params: {
-        client_id: '79085',
-        redirect_uri: encodedAppUrl,
+        client_id: '79085', // '79175', '79085',
+        redirect_uri: encodedAppOAuthUrl,
+        // client_secret: 'm23Q5xhICrabUFPlGtZ3sfbajXVjtSkOpSMBkrzRKCALLethr4jeOSyjid88UUES',
         client_secret: 'zg4mKy9O1mc1mmynShJTVxs8r1k3X4e3g1sv5URlkpZqlWdUdAA7C2SSBOo02P7X',
         code: '',
         grant_type: 'authorization_code'
@@ -58,8 +63,19 @@ export class OAuth2Client {
   authorize(): void {
     if (this.plugin.settings.apiType === ApiType.Jetpack) {
       const auth = OAuth2Record.JetPack.authorize;
+      if (this.plugin.settings.endpoint) {
+        const HTTP = 'http://';
+        const HTTPS = 'https://';
+        if (startsWith(this.plugin.settings.endpoint, HTTP)) {
+          auth.params.blog = this.plugin.settings.endpoint.substring(HTTP.length);
+        } else if (startsWith(this.plugin.settings.endpoint, HTTPS)) {
+          auth.params.blog = this.plugin.settings.endpoint.substring(HTTPS.length);
+        }
+      } else {
+        delete auth.params.blog;
+      }
       if (auth.method === 'get') {
-        this.doHttpGet(auth.url, auth.params);
+        openWithBrowser(auth.url, auth.params);
       }
     }
   }
@@ -88,14 +104,6 @@ export class OAuth2Client {
     } else {
       return null;
     }
-  }
-
-  private doHttpGet(url: string, queryParams: Record<string, string>): void {
-    const params = [];
-    for (const [ key, value ] of Object.entries(queryParams)) {
-      params.push(`${key}=${value}`);
-    }
-    window.open(`${url}?${params.join('&')}`);
   }
 
   private doHttpPost(): void {

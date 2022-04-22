@@ -37,54 +37,7 @@ export default class WordpressPlugin extends Plugin {
       }
     });
 
-    const settingTab = new WordpressSettingTab(this.app, this);
-		this.addSettingTab(settingTab);
-
-    this.registerObsidianProtocolHandler('wordpress-plugin', async (e) => {
-      if (e.action === 'wordpress-plugin') {
-        if (e.state) {
-          if (e.error) {
-            new Notice(`WordPress authorize failed!\n${e.error}: ${e.error_description.replace(/\+/g,' ')}`);
-          } else if (e.code) {
-            //   this.settings.oauth2Code = ;
-            //   $curl = curl_init( 'https://public-api.wordpress.com/oauth2/token' );
-            //   curl_setopt( $curl, CURLOPT_POST, true );
-            //   curl_setopt( $curl, CURLOPT_POSTFIELDS, array(
-            //     'client_id' => your_client_id,
-            //     'redirect_uri' => your_redirect_url,
-            //     'client_secret' => your_client_secret_key,
-            //     'code' => $_GET['code'], // The code from the previous request
-            //     'grant_type' => 'authorization_code'
-            // ) );
-            //   curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1);
-            //   $auth = curl_exec( $curl );
-            //   $secret = json_decode($auth);
-            //   $access_key = $secret->access_token;
-            const oauth2 = new OAuth2Client(this);
-            const resp = await oauth2.requestToken(e.code);
-            console.log(resp);
-
-            // if (oauth) {
-            //   const s = JSON.stringify({
-            //     ...oauth.requestToken.params,
-            //     code: e.code
-            //   });
-            //   console.log(s);
-            //
-            //   // const tokenResponse = JSON.parse(resp);
-            //   // console.log(tokenResponse);
-            //   // if (tokenResponse.error) {
-            //   //   new Notice(`WordPress authorize failed.\nError: ${tokenResponse.error}\n${tokenResponse.error_description}`);
-            //   // }
-            //   console.log(resp);
-            //
-            //   // call display() to show logout button
-            //   settingTab.display();
-            // }
-          }
-        }
-      }
-    });
+		this.addSettingTab(new WordpressSettingTab(this.app, this));
 	}
 
 	onunload() {

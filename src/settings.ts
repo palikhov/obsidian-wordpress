@@ -1,7 +1,7 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import WordpressPlugin from './main';
 import { PostStatus } from './wp-api';
-import { OAuth2Client } from './oauth2';
+import { appOAuthUrlAction, OAuth2Client } from './oauth2';
 
 export const enum ApiType {
   XML_RPC = 'xml-rpc',
@@ -63,6 +63,52 @@ export class WordpressSettingTab extends PluginSettingTab {
     private readonly plugin: WordpressPlugin
   ) {
 		super(app, plugin);
+
+    this.plugin.registerObsidianProtocolHandler(appOAuthUrlAction, async (e) => {
+      if (e.action === appOAuthUrlAction) {
+        if (e.state) {
+          if (e.error) {
+            new Notice(`WordPress authorize failed!\n${e.error}: ${e.error_description.replace(/\+/g,' ')}`);
+          } else if (e.code) {
+            //   this.settings.oauth2Code = ;
+            //   $curl = curl_init( 'https://public-api.wordpress.com/oauth2/token' );
+            //   curl_setopt( $curl, CURLOPT_POST, true );
+            //   curl_setopt( $curl, CURLOPT_POSTFIELDS, array(
+            //     'client_id' => your_client_id,
+            //     'redirect_uri' => your_redirect_url,
+            //     'client_secret' => your_client_secret_key,
+            //     'code' => $_GET['code'], // The code from the previous request
+            //     'grant_type' => 'authorization_code'
+            // ) );
+            //   curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1);
+            //   $auth = curl_exec( $curl );
+            //   $secret = json_decode($auth);
+            //   $access_key = $secret->access_token;
+            const oauth2 = new OAuth2Client(this.plugin);
+            const resp = await oauth2.requestToken(e.code);
+            console.log(resp);
+
+            // if (oauth) {
+            //   const s = JSON.stringify({
+            //     ...oauth.requestToken.params,
+            //     code: e.code
+            //   });
+            //   console.log(s);
+            //
+            //   // const tokenResponse = JSON.parse(resp);
+            //   // console.log(tokenResponse);
+            //   // if (tokenResponse.error) {
+            //   //   new Notice(`WordPress authorize failed.\nError: ${tokenResponse.error}\n${tokenResponse.error_description}`);
+            //   // }
+            //   console.log(resp);
+            //
+            //   // call display() to show logout button
+            //   settingTab.display();
+            // }
+          }
+        }
+      }
+    });
 	}
 
 	display(): void {
